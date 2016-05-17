@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html ng-app="twitterApp">
+<head>
+    <title>AngularJS Instant Tweet Search Application</title>
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" type="text/css" href="bower_components/angular-material/angular-material.min.css">
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular-sanitize/angular-sanitize.js"></script>
+    <script src="app.js"></script>
+    <script src="controllers.js"></script>
+    <script src="services.js"></script>
+    <script src="oauth.js"></script>
+    <script type="text/javascript" src="bower_components/angular-material/angular-material.min.js"></script>
+    <script type="text/javascript" src="bower_components/angular-aria/angular-aria.min.js"></script>
+    <script type="text/javascript" src="bower_components/angular-messages/angular-messages.min.js"></script>
+    <script type="text/javascript" src="bower_components/angular-animate/angular-animate.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+    body,md-content{
+      background-color:  white ;
+      margin-bottom: 0px;
+    }
+        .container {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        #results .row {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        /* enable absolute positioning */
+      .inner-addon { 
+          position: relative; 
+      }
+
+      /* style icon */
+      .inner-addon .glyphicon {
+        position: absolute;
+        padding: 10px;
+        pointer-events: none;
+      }
+
+      /* align icon */
+      .left-addon .glyphicon  { left:  0px;}
+      .right-addon .glyphicon { right: 0px;}
+
+      /* add padding  */
+      .left-addon input  { padding-left:  30px; }
+      .right-addon input { padding-right: 30px; }
+
+
+      .listdemoBasicUsage md-divider {
+      margin-top: 10px;
+      margin-bottom: 10px; }
+      md-list-item{
+        border-radius: 5px;
+      }
+      
+    /*  md-card:hover{
+        background-color:  #f4f6f7  ;
+        -webkit-transition: all 0.2s ease-in-out;
+        -moz-transition: all 0.2s ease-in-out;
+        -o-transition: all 0.2s ease-in-out;
+        transition: all 0.2s ease-in-out;
+      }*/
+      md-card{
+        width:100%;
+        padding: 5px;
+      }
+      .header{
+        color:white;
+        background-color: teal;
+        positin:fixed;
+        padding: 10px;
+        padding-bottom: 15px;
+
+        margin-top: 0px;
+        width:100%;
+      }
+       #connectButtonBox{
+        padding: auto;
+        width: 100%;
+        vertical-align: middle;
+
+
+
+      }
+      #connectButton{
+       margin: auto;
+
+
+      }
+
+
+      </style>
+</head>
+<body>
+<h1 class="header">AngularJS Instant Tweet Search Application</h1>
+  <md-content>
+
+    <div class="container" ng-controller="TwitterController">
+          <section layout="row" layout-sm="column" id="connectButtonBox" layout-align="centre" layout-wrap>  
+                <md-button ng-click="connectButton()" id="connectButton" class="md-raised md-primary col-sm-12
+                col-md-4">Connect With Twitter</md-button>
+        </section>
+        <div class="row">
+     
+              
+              <section layout="row" layout-sm="column" layout-align="left" layout-wrap>  
+                <md-button ng-click="refreshTimeline()" id="getTimelineButton" type="button" class="md-raised md-primary" style="display:none;">Get My Timeline</md-button>
+                 
+                <md-button ng-click="signOut()" id="signOut" type="button" class="md-raised md-warn" style="display:none;">Sign Out</md-button>
+              </section>  
+     
+         
+            <div class="col-sm-12 col-md-6">
+                <div class="inner-addon left-addon" id="searchBox" style="display:none;">
+                <i class="glyphicon glyphicon-search"></i>
+                <input type="text" ng-model="searchTerm" class="form-control" placeholder="Enter search term here" ng-show="connectedTwitter"/>
+                </div>
+            </div>
+        
+        </div>
+        <div class="row">
+            <div class="col-xs-12" id="results">
+                <!-- <div class="row" ng-repeat="t in tweets | filter:searchTerm">
+
+                    <div class="col-xs-2 col-sm-1">
+                        <img ng-src="{{t.user.profile_image_url}}" class="img-circle">
+                    </div>
+                    <div class="col-xs-10 col-sm-11">
+                        <small>{{t.user.name}}</small><br> <span ng-bind-html="t.text"></span>
+                    </div>
+
+                </div> -->
+              <md-list>
+              <md-list-item ng-repeat="t in tweets | filter:searchTerm">
+                <img ng-src="{{t.user.profile_image_url}}" class="md-avatar" alt="{{t.user.name}}" />
+                <div class="md-list-item-text" layout="column">
+                <h2>{{ t.user.name }}</h2>
+                <!-- <h5>{{ t.created_at.substring(0,20)}}</h5> -->
+                <p>{{ t.text }}</p>
+                </div>
+                 <md-divider md-inset ng-if="!$last"></md-divider>
+                 </md-list-item>
+                 </md-list>
+          
+                <div ng-show="rateLimitError">
+                  Rate limit reached. You are making too many requests.
+                </div>
+                <div>
+                    <br/>
+                    <section layout="row" layout-sm="column" layout-align="left" layout-wrap>
+                    <md-button class="md-raised md-primary" id="load-more" ng-click="refreshTimeline(tweets[tweets.length-1].id)" ng-show="connectedTwitter">Load More </md-button>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+    </div>
+  </md-content>
+</body>
+</html>
